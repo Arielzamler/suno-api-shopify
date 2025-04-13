@@ -3,11 +3,16 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') {
         console.log('Handling OPTIONS request...');
-        res.setHeader('Access-Control-Allow-Origin', '*'); // Keep '*' for now for testing
-        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-        res.status(200).end();
-        console.log('OPTIONS headers set and response sent.');
+        try {
+            res.setHeader('Access-Control-Allow-Origin', '*'); // Keep '*' for broad testing
+            res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+            res.status(200).end();
+            console.log('OPTIONS headers set and response sent.');
+        } catch (error) {
+            console.error('Error setting OPTIONS headers:', error);
+            res.status(500).end(); // Send an error response
+        }
         return;
     }
 
@@ -15,16 +20,20 @@ export default async function handler(req, res) {
         console.log('Handling POST request...');
         const { name, age, hobbies, job } = req.body;
         const prompt = `A cheerful birthday song for ${name}, who just turned ${age}. They love ${hobbies} and work as a ${job}.`;
+        const apiKey = process.env.SUNO_API_KEY;
 
-        // Access your API key from environment variables (recommended)
-        const apiKey = process.env.SUNO_API_KEY; // Make sure you've set this in Vercel
+        if (!apiKey) {
+            console.error('SUNO_API_KEY environment variable not set.');
+            res.status(500).json({ error: 'Server configuration error: API key not found.' });
+            return;
+        }
 
         const requestOptions = {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
-                "Authorization": `Bearer ${apiKey}` // Use the API key here
+                "Authorization": `Bearer ${apiKey}`
             },
             body: JSON.stringify({
                 prompt: prompt,
@@ -42,6 +51,7 @@ export default async function handler(req, res) {
             const data = await response.json();
 
             if (!data.result || !data.result.url) {
+                console.error('AI song generation failed:', data);
                 res.status(500).json({ error: "Song generation failed", details: data });
                 return;
             }
@@ -49,7 +59,10 @@ export default async function handler(req, res) {
             res.status(200).json({ song_url: data.result.url });
 
         } catch (error) {
+            console.error('Error during AI song generation request:', error);
             res.status(500).json({ error: error.message });
         }
+    } else {
+        res.status(405).json({ error: `Method "${req.method}" not allowed.` });
     }
 }
