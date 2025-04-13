@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
     // Proper CORS setup
-    res.setHeader('Access-Control-Allow-Origin', 'https://vkgte4-6f.myshopify.com');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
