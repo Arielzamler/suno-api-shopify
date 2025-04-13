@@ -1,16 +1,18 @@
 export default async function handler(req, res) {
-    // Add CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "*"); // You can use Shopify's domain here instead of '*'
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    // CORS headers (Important!)
+    res.setHeader('Access-Control-Allow-Origin', 'https://vkgte4-6f.myshopify.com');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    // Handle CORS preflight request
-    if (req.method === "OPTIONS") {
-        return res.status(200).end();
+    // Handle preflight OPTIONS request
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
     }
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Only POST requests allowed' });
+        res.status(405).json({ error: 'Only POST requests allowed' });
+        return;
     }
 
     const { name, age, hobbies, job } = req.body;
@@ -28,27 +30,28 @@ export default async function handler(req, res) {
         callBackUrl: ""
     });
 
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": "Bearer 3808d0a3dea9b60176d99e6737a03ff1"
-        },
-        body: raw,
-        redirect: "follow"
-    };
-
     try {
-        const response = await fetch("https://apibox.erweima.ai/api/v1/generate", requestOptions);
+        const response = await fetch("https://apibox.erweima.ai/api/v1/generate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Bearer 3808d0a3dea9b60176d99e6737a03ff1" // Put your actual API key here
+            },
+            body: raw,
+            redirect: "follow"
+        });
+
         const data = await response.json();
 
         if (!data.result || !data.result.url) {
-            return res.status(500).json({ error: "Song generation failed", details: data });
+            res.status(500).json({ error: "Song generation failed", details: data });
+            return;
         }
 
-        return res.status(200).json({ song_url: data.result.url });
+        res.status(200).json({ song_url: data.result.url });
+
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
 }
