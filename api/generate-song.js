@@ -1,11 +1,11 @@
 export default async function handler(req, res) {
-    // Set CORS headers
-    res.setHeader("Access-Control-Allow-Origin", "*"); // OR use your domain only: 'https://vkgte4-6f.myshopify.com'
+    // Add CORS headers
+    res.setHeader("Access-Control-Allow-Origin", "*"); // You can use Shopify's domain here instead of '*'
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    // Handle preflight OPTIONS request
-    if (req.method === 'OPTIONS') {
+    // Handle CORS preflight request
+    if (req.method === "OPTIONS") {
         return res.status(200).end();
     }
 
